@@ -6,6 +6,11 @@
 
 #define MAX_LOADSTRING 100
 
+#define BALL_R 10
+#define TENNIS_W 10
+#define TENNIS_H 60
+#define STEP 5
+
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
@@ -57,11 +62,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 
 
-//
-//  함수: MyRegisterClass()
-//
-//  용도: 창 클래스를 등록합니다.
-//
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEXW wcex;
@@ -83,16 +83,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     return RegisterClassExW(&wcex);
 }
 
-//
-//   함수: InitInstance(HINSTANCE, int)
-//
-//   용도: 인스턴스 핸들을 저장하고 주 창을 만듭니다.
-//
-//   주석:
-//
-//        이 함수를 통해 인스턴스 핸들을 전역 변수에 저장하고
-//        주 프로그램 창을 만든 다음 표시합니다.
-//
+
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
@@ -123,6 +114,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    // 좌표계 계산을 위함
+    static POINT ptMouse;
+    static TCHAR szPos[128];
+
+    static RECT rtClient;
+
+    // 공, 각 플레이어가 움직이는 막대판
+    static POINT ptBall;
+    static POINT ptPlayer1;
+    static POINT ptPlayer2;
+
     switch (message)
     {
     case WM_COMMAND:
@@ -142,11 +144,55 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
+    case WM_LBUTTONDOWN:
+    {
+        ptMouse.x = LOWORD(lParam);
+        ptMouse.y = HIWORD(lParam);
+        wsprintf(szPos, _T("(%d, %d)"), ptMouse.x, ptMouse.y);
+
+        InvalidateRect(hWnd, NULL, TRUE); // WM_PAINT 메시지 발생
+    }
+    case WM_KEYDOWN:
+    {
+        // ws, 방향키
+        switch (wParam) {
+        // Player 1
+        case 'W':
+            ptPlayer1.y -= STEP;
+            break;
+        case 'S':
+            ptPlayer1.y += STEP;
+            break;
+        // Player 2
+        case VK_UP:
+            ptPlayer2.y -= STEP;
+            break;
+        case VK_DOWN:
+            ptPlayer2.y += STEP;
+            break;
+        }
+
+        InvalidateRect(hWnd, NULL, TRUE);
+    }
+    break;
+    case WM_SIZE:
+    {
+        GetClientRect(hWnd, &rtClient);
+    }
+    break;
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
+            // 클릭한 위치
+            DrawText(hdc, szPos, -1, &rtClient, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+            // 각 플레이어의 막대기와 공 생성
+            // TODO ) 플레이어 위치 정적 변수 사용, 색채우기, 화면 비율 위치로 변경, 더블 버퍼링 사용
+            Rectangle(hdc, 100, 200, 100 + TENNIS_W, 200 + TENNIS_H);
+            Rectangle(hdc, 800, 200, 800 + TENNIS_W, 200 + TENNIS_H);
+
             EndPaint(hWnd, &ps);
         }
         break;
