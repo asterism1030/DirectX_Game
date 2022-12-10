@@ -140,11 +140,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GameInfo.h" />
     <ClInclude Include="PingPong.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GameInfo.cpp" />
     <ClCompile Include="PingPong.cpp" />
   </ItemGroup>
   <ItemGroup>

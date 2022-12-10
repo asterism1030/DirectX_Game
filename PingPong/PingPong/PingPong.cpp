@@ -16,6 +16,17 @@ HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 
+// TODO) 별도 클래스를 생성해서 분리
+static UINT player1Score = 0;
+static UINT player2Score = 0;
+
+static POINT ptP1Score = { 50, 30 };    // left, top
+static POINT ptP2Score = { 650, 30 };
+static POINT ptBall = { 450, 200 };     // center
+static POINT ptPlayer1 = { 100, 200 };  // left, top
+static POINT ptPlayer2 = { 800, 200 };
+
+
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -120,10 +131,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     static RECT rtClient;
 
-    // 공, 각 플레이어가 움직이는 막대판
-    static POINT ptBall;
-    static POINT ptPlayer1;
-    static POINT ptPlayer2;
+    
 
     switch (message)
     {
@@ -146,6 +154,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_LBUTTONDOWN:
     {
+        // TODO ) 좌표 확인용으로 지울 예정
         ptMouse.x = LOWORD(lParam);
         ptMouse.y = HIWORD(lParam);
         wsprintf(szPos, _T("(%d, %d)"), ptMouse.x, ptMouse.y);
@@ -155,6 +164,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_KEYDOWN:
     {
         // ws, 방향키
+        // TODO) 동시 입력 처리 (동시 입력이 되지 않음), 경계선 처리
         switch (wParam) {
         // Player 1
         case 'W':
@@ -188,10 +198,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // 클릭한 위치
             DrawText(hdc, szPos, -1, &rtClient, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
+            ////// 상단 UI
+            TCHAR szPlayer[128];
+
+            wsprintf(szPlayer, _T("Player1 :  %d"), player1Score);
+            TextOut(hdc, ptP1Score.x, ptP1Score.y, szPlayer, lstrlen(szPlayer));
+            wsprintf(szPlayer, _T("Player2:  %d"), player2Score);
+            TextOut(hdc, ptP2Score.x, ptP2Score.y, szPlayer, lstrlen(szPlayer));
+
+            ////// 중단 UI
             // 각 플레이어의 막대기와 공 생성
-            // TODO ) 플레이어 위치 정적 변수 사용, 색채우기, 화면 비율 위치로 변경, 더블 버퍼링 사용
-            Rectangle(hdc, 100, 200, 100 + TENNIS_W, 200 + TENNIS_H);
-            Rectangle(hdc, 800, 200, 800 + TENNIS_W, 200 + TENNIS_H);
+            // TODO ) 색채우기, 화면 비율 위치로 변경, 더블 버퍼링 사용
+            Rectangle(hdc, ptPlayer1.x, ptPlayer1.y, ptPlayer1.x + TENNIS_W, ptPlayer1.y + TENNIS_H);
+            Rectangle(hdc, ptPlayer2.x, ptPlayer2.y, ptPlayer2.x + TENNIS_W, ptPlayer2.y + TENNIS_H);
+
+            // TODO ) 공의 물리적 동작, 점수 계산
+            Ellipse(hdc, ptBall.x - BALL_R, ptBall.y - BALL_R, ptBall.x + BALL_R, ptBall.y + BALL_R);
 
             EndPaint(hWnd, &ps);
         }
